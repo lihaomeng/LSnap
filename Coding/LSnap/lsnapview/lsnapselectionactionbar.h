@@ -1,15 +1,15 @@
-#pragma once
+#ifndef LSNAPSELECTIONACTIONBAR_H
+#define LSNAPSELECTIONACTIONBAR_H
+
 #include <QWidget>
 #include <QPushButton>
 #include <QHBoxLayout>
 #include <QToolButton>
-#include <QMenu>
-#include <QToolButton>
-#include <QMenu>
 
 class QVBoxLayout;
 class GifPanel;
-class DrawPanel;
+class LSnapDrawPanel;
+
 class ActionButton : public QPushButton
 {
 	Q_OBJECT
@@ -25,7 +25,6 @@ public:
 		);
 		connect(this, &QPushButton::clicked, this, &ActionButton::activated);
 	}
-
 signals:
 	void activated();
 };
@@ -36,7 +35,7 @@ class DrawButton : public ActionButton
 {
 	Q_OBJECT
 public:
-	explicit DrawButton(QWidget* parent = nullptr) : ActionButton(QStringLiteral("绘图"), parent) {}
+	explicit DrawButton(QWidget* parent = nullptr) : ActionButton(QStringLiteral("draw"), parent) {}
 };
 
 ///////////////////////////////////////
@@ -45,7 +44,7 @@ class SaveButton : public ActionButton
 {
 	Q_OBJECT
 public:
-	explicit SaveButton(QWidget* parent = nullptr) : ActionButton(QStringLiteral("保存"), parent) {}
+	explicit SaveButton(QWidget* parent = nullptr) : ActionButton(QStringLiteral("save"), parent) {}
 };
 
 ///////////////////////////////////////
@@ -54,7 +53,7 @@ class CopyButton : public ActionButton
 {
 	Q_OBJECT
 public:
-	explicit CopyButton(QWidget* parent = nullptr) : ActionButton(QStringLiteral("复制"), parent) {}
+	explicit CopyButton(QWidget* parent = nullptr) : ActionButton(QStringLiteral("copy"), parent) {}
 };
 
 ///////////////////////////////////////
@@ -63,7 +62,7 @@ class PasteButton : public ActionButton
 {
 	Q_OBJECT
 public:
-	explicit PasteButton(QWidget* parent = nullptr) : ActionButton(QStringLiteral("贴图"), parent) {}
+	explicit PasteButton(QWidget* parent = nullptr) : ActionButton(QStringLiteral("paste"), parent) {}
 };
 
 ///////////////////////////////////////
@@ -72,7 +71,7 @@ class CancelButton : public ActionButton
 {
 	Q_OBJECT
 public:
-	explicit CancelButton(QWidget* parent = nullptr) : ActionButton(QStringLiteral("取消"), parent) {}
+	explicit CancelButton(QWidget* parent = nullptr) : ActionButton(QStringLiteral("cancel"), parent) {}
 };
 
 ///////////////////////////////////////
@@ -86,14 +85,18 @@ public:
 
 ///////////////////////////////////////
 
-class SelectionActionBar : public QWidget
+class LSnapSelectionActionBar : public QWidget
 {
 	Q_OBJECT
 public:
-    explicit SelectionActionBar(QWidget* parent);
+    explicit LSnapSelectionActionBar(QWidget* parent);
     void addButton(ActionButton* btn);
     void clearButtons();
     void addDefaultButtons();
+
+public slots:
+	void onDrawingModeChanged(int mode);
+	void onLineWidthChanged(int width);
 
 signals:
 	void saveClicked();
@@ -108,14 +111,13 @@ signals:
     void gifCancel();
 
     //二级控件
-	void lineWidthChanged(int w);      // 新增：线宽变化
-    void shapeModeChanged(int mode);   // 新增：形状模式变化  // 0 = 矩形，1 = 椭圆
+	void lineWidthChanged(int w);
+    void shapeModeChanged(int mode);   // 0 = 截图  1 = 矩形，2 = 椭圆
 
 private:
-    QHBoxLayout* layout_ = nullptr;
-    QVBoxLayout* rootLayout_ = nullptr;
-
-    DrawPanel* drawPanel_ = nullptr;   // 绘图面板
+    QVBoxLayout* m_pVRootLayout = nullptr;
+	QHBoxLayout* m_pHButtonLayout = nullptr;
+	LSnapDrawPanel* m_pDrawPanel = nullptr;   // 绘图面板
     bool optionsVisible_ = false;
 
     //GIF相关
@@ -123,5 +125,6 @@ private:
     bool gifVisible_ = false;
 
     void setupOptionsPanel();
-
+	void updateDrawPanelPosition();
 };
+#endif //LSNAPSELECTIONACTIONBAR_H

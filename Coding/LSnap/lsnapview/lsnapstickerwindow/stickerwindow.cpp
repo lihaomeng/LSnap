@@ -1,4 +1,3 @@
-// stickerwindow.cpp
 #include "stickerwindow.h"
 #include <QPainter>
 #include <QMouseEvent>
@@ -14,32 +13,23 @@ StickerWindow::StickerWindow(const QPixmap& pixmap, QWidget* parent)
     setMouseTracking(true);
     setFocusPolicy(Qt::StrongFocus);
     if (!pixmap.isNull())
-    {
         resize(pixmap.size() / pixmap.devicePixelRatio());
-    }
     else
-    {
         resize(200, 150);
-    }
 }
 
 void StickerWindow::setPixmap(const QPixmap& pixmap)
 {
     pixmap_ = pixmap;
     if (!pixmap.isNull())
-    {
         resize(pixmap.size() / pixmap.devicePixelRatio());
-    }
     update();
 }
 
 void StickerWindow::paintEvent(QPaintEvent*)
 {
     QPainter p(this);
-    
     p.fillRect(rect(), QColor(240, 240, 240, 200));
-    
-    // 绘制贴图图像，保持比例
     if (!pixmap_.isNull())
     {
         p.setRenderHint(QPainter::SmoothPixmapTransform, true);
@@ -53,17 +43,13 @@ void StickerWindow::paintEvent(QPaintEvent*)
     }
     else
     {
-        p.drawText(rect(), Qt::AlignCenter, "无图像");
+        p.drawText(rect(), Qt::AlignCenter, "no");
     }
-    // 绘制边框
     p.setPen(QPen(QColor(0, 120, 200), 1));
     p.setBrush(Qt::NoBrush);
     p.drawRect(rect().adjusted(0, 0, -1, -1));
     if(m_isSelected)
-    {
-        // 绘制拖拽控制点
         drawResizeHandles(p);
-    }
 }
 
 void StickerWindow::mousePressEvent(QMouseEvent* e)
@@ -200,7 +186,8 @@ void StickerWindow::mouseMoveEvent(QMouseEvent* e)
     }
     
     ResizeHandle newHovered = getHandleAt(e->pos());
-    if (newHovered != hoveredHandle_) {
+    if (newHovered != hoveredHandle_)
+    {
         hoveredHandle_ = newHovered;
         updateCursorForHandle(hoveredHandle_);
     }
@@ -322,7 +309,7 @@ void StickerWindow::keyPressEvent(QKeyEvent* e)
     QWidget::keyPressEvent(e);
 }
 
-void StickerWindow::enterEvent(QEnterEvent* e)
+void StickerWindow::enterEvent(QEvent* e)
 {
     m_isSelected = true;
     update();

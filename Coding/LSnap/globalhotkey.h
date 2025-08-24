@@ -1,5 +1,6 @@
-// globalhotkey.h
-#pragma once
+#ifndef GLOBALHOTKEYFILTER_H   
+#define GLOBALHOTKEYFILTER_H
+
 #include <QObject>
 #include <QAbstractNativeEventFilter>
 #include <QSet>
@@ -26,7 +27,7 @@ public:
     bool registerHotkey(int id, unsigned int modifiers, unsigned int vk);
     void unregisterHotkey(int id);
 
-    bool nativeEventFilter(const QByteArray& eventType, void* message, qintptr* result) override;
+    bool nativeEventFilter(const QByteArray& eventType, void* message, long* result) override;
 
 signals:
     void hotkeyPressed(int id);
@@ -34,3 +35,4 @@ signals:
 private:
     QSet<int> m_ids;
 };
+#endif // GLOBALHOTKEYFILTER_H

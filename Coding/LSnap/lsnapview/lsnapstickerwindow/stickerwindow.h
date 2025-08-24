@@ -1,9 +1,10 @@
-// stickerwindow.h
-#pragma once
+#ifndef LSNAPSTICKWINDOW_H
+#define LSNAPSTICKWINDOW_H
 #include <QWidget>
 #include <QPixmap>
 
-class StickerWindow : public QWidget {
+class StickerWindow : public QWidget
+{
     Q_OBJECT
 public:
     explicit StickerWindow(const QPixmap& pixmap, QWidget* parent = nullptr);
@@ -17,7 +18,7 @@ protected:
     void mouseMoveEvent(QMouseEvent* event) override;
     void mouseReleaseEvent(QMouseEvent* event) override;
     void keyPressEvent(QKeyEvent* e) override;
-    void enterEvent(QEnterEvent* e) override;
+    void enterEvent(QEvent* e) override;
     void leaveEvent(QEvent* e) override;
 
 private:
@@ -53,3 +54,4 @@ private:
     void updateCursorForHandle(ResizeHandle handle);
     void drawResizeHandles(QPainter& painter);
 };
+#endif // LSNAPSTICKWINDOW_H

@@ -1,4 +1,3 @@
-// globalhotkey.cpp
 #include "globalhotkey.h"
 
 #ifdef Q_OS_WIN
@@ -38,7 +37,7 @@ void GlobalHotkeyFilter::unregisterHotkey(int id)
     m_ids.remove(id);
 }
 
-bool GlobalHotkeyFilter::nativeEventFilter(const QByteArray& eventType, void* message, qintptr* result)
+bool GlobalHotkeyFilter::nativeEventFilter(const QByteArray& eventType, void* message, long* result)
 {
 #ifdef Q_OS_WIN
     if (eventType == "windows_generic_MSG" || eventType == "windows_dispatcher_MSG")
