@@ -3,7 +3,7 @@
 #include "lsnapdrawinglayer.h"
 #include "lsnapstickerwindow/lsnappicstickerwindow.h"
 #include "lsnapstickerwindow/stickerwindow.h"
-//#include "recorder/gifrecorder.h"
+#include "gifrecorder.h"
 #include <QPainter>
 #include <QGuiApplication>
 #include <QScreen>
@@ -135,33 +135,22 @@ void LSnapOverlayWindow::createButtonBar()
     });
 
     //////////////////////////////////////////////////////////////// GIF 录制
-    //if (!m_pGifRecorder)
-    //{
-    //    m_pGifRecorder = new GifRecorder(this);
-    //    m_pGifRecorder->setFrameSource([this]{ return getSelectionPixmap1(true).toImage(); });
-    //    //connect(m_pGifRecorder, &GifRecorder::infoUpdated, m_pActionBar, &SelectionActionBar::updateGifInfo);
-    //    connect(m_pGifRecorder, &GifRecorder::saved, this, [](const QString& path, bool ok){
-    //        qDebug() << "GIF frames saved to:" << path << "ok=" << ok;
-    //    });
-    //}
-    
-    ////recordHollow_控制底图
-    //connect(m_pGifRecorder, &GifRecorder::started, this, [this]{
-    //    recordHollow_ = true;
-    //    update();
-    //});
-    //connect(m_pGifRecorder, &GifRecorder::stopped, this, [this]{
-    //    recordHollow_ = false;
-    //    update();
-    //});
-    //connect(m_pGifRecorder, &GifRecorder::canceled, this, [this]{
-    //    recordHollow_ = false;
-    //    update();
-    //});
-
-    //connect(bar, &SelectionActionBar::gifStart,  m_pGifRecorder, &GifRecorder::start);
-    //connect(bar, &SelectionActionBar::gifStop,   m_pGifRecorder, &GifRecorder::stop);
-    //connect(bar, &SelectionActionBar::gifCancel, m_pGifRecorder, &GifRecorder::cancel);
+    if (!m_pGifRecorder)
+    {
+        m_pGifRecorder = new GifRecorder(this);
+        m_pGifRecorder->setFrameSource([this]{ return getSelectionPixmap1(true).toImage(); });
+    }
+   
+    connect(pSelectionActionBar, &LSnapSelectionActionBar::gifStartForOverlayWindow, this, [this] {
+        m_pGifRecorder->startCapture();
+        m_recordHollow = true;
+        update();
+    });
+    connect(pSelectionActionBar, &LSnapSelectionActionBar::gifStopForOverlayWindow, this, [this] {
+        m_pGifRecorder->stopCapture();
+        m_recordHollow = false;
+        update();
+        });
 }
 
 void LSnapOverlayWindow::keyPressEvent(QKeyEvent* pKeyEvent)  // esc close shadow

@@ -7,7 +7,7 @@
 #include <QToolButton>
 
 class QVBoxLayout;
-class GifPanel;
+class LSnapGifPanel;
 class LSnapDrawPanel;
 
 class ActionButton : public QPushButton
@@ -106,8 +106,8 @@ signals:
     void drawClicked();
 
     //GIF相关
-    void gifStart(int fps, bool loop);
-    void gifStop();
+    void gifStartForOverlayWindow();
+    void gifStopForOverlayWindow();
     void gifCancel();
 
     //二级控件
@@ -121,10 +121,10 @@ private:
     bool optionsVisible_ = false;
 
     //GIF相关
-    GifPanel* gifPanel_ = nullptr;
-    bool gifVisible_ = false;
+    LSnapGifPanel* m_pGifPanel = nullptr;
+    bool m_gifVisible = false;
 
-    void setupOptionsPanel();
 	void updateDrawPanelPosition();
+	void updateGifPanelPosition();
 };
 #endif //LSNAPSELECTIONACTIONBAR_H

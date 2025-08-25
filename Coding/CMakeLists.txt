@@ -4,7 +4,7 @@ if(WIN32)
     set(CMAKE_SYSTEM_VERSION "10.0.18362.0")
 endif()
 
-project(LSnap)
+project(LSnapMain)
 
 set(CMAKE_CXX_STANDARD 11)
 
@@ -20,7 +20,6 @@ set(CURRENT_DIR ${CMAKE_SOURCE_DIR})
 file(GLOB ALL_ITEMS RELATIVE ${CURRENT_DIR} ${CURRENT_DIR}/*)
 message(STATUS "ALL_ITEMS: ${ALL_ITEMS}")
 
-# 遍历所有的文件
 set(DIRECTORIES "")
 foreach(ITEM ${ALL_ITEMS})
     # 判断是否为目录
@@ -33,10 +32,8 @@ foreach(ITEM ${ALL_ITEMS})
                 break()
             endif()
         endforeach()
-        # 如果当前目录不在排除的文件夹列表中
         if(NOT EXCLUDE_FLAG)
             list(APPEND DIRECTORIES ${ITEM})
-            # 添加子目录
             add_subdirectory(${CURRENT_DIR}/${ITEM})
         endif()
     endif()
