@@ -44,8 +44,9 @@ void LSnapOverlayWindow::paintEvent(QPaintEvent*)
 {
     QPainter p(this);
 
-    if (!m_recordHollow && !m_screenShot.isNull())
-        p.drawPixmap(rect(), m_screenShot, m_screenShot.rect());
+    //TODO for test
+    //if (!m_recordHollow && !m_screenShot.isNull())
+    //    p.drawPixmap(rect(), m_screenShot, m_screenShot.rect());
 
     const QColor overlay(0, 0, 0, 120);
     if (!m_recordHollow)
@@ -100,7 +101,6 @@ void LSnapOverlayWindow::drawResizeHandles(QPainter& painter)
 void LSnapOverlayWindow::createButtonBar()
 {
     auto* pSelectionActionBar = new LSnapSelectionActionBar(this);
-    pSelectionActionBar->addDefaultButtons();
     m_pActionBar = pSelectionActionBar;
 
     connect(pSelectionActionBar, &LSnapSelectionActionBar::shapeModeChanged, this, &LSnapOverlayWindow::onShapeModeChanged);

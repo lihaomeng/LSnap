@@ -2,97 +2,19 @@
 #define LSNAPSELECTIONACTIONBAR_H
 
 #include <QWidget>
-#include <QPushButton>
-#include <QHBoxLayout>
-#include <QToolButton>
 
-class QVBoxLayout;
 class LSnapGifPanel;
 class LSnapDrawPanel;
 
-class ActionButton : public QPushButton
-{
-	Q_OBJECT
-public:
-	explicit ActionButton(const QString& text, QWidget* parent = nullptr)
-		: QPushButton(text, parent)
-	{
-		setStyleSheet(
-			"QPushButton{background-color:rgba(60,60,60,180);border:1px solid rgba(100,100,100,150);"
-            "border-radius:4px;color:white;padding:6px 12px;font-size:11px;min-width:16px;min-height:12px;}"
-			"QPushButton:hover{background-color:rgba(80,80,80,200);}"
-			"QPushButton:pressed{background-color:rgba(100,100,100,200);}"
-		);
-		connect(this, &QPushButton::clicked, this, &ActionButton::activated);
-	}
-signals:
-	void activated();
-};
-
-///////////////////////////////////////
-
-class DrawButton : public ActionButton
-{
-	Q_OBJECT
-public:
-	explicit DrawButton(QWidget* parent = nullptr) : ActionButton(QStringLiteral("draw"), parent) {}
-};
-
-///////////////////////////////////////
-
-class SaveButton : public ActionButton
-{
-	Q_OBJECT
-public:
-	explicit SaveButton(QWidget* parent = nullptr) : ActionButton(QStringLiteral("save"), parent) {}
-};
-
-///////////////////////////////////////
-
-class CopyButton : public ActionButton
-{
-	Q_OBJECT
-public:
-	explicit CopyButton(QWidget* parent = nullptr) : ActionButton(QStringLiteral("copy"), parent) {}
-};
-
-///////////////////////////////////////
-
-class PasteButton : public ActionButton
-{
-	Q_OBJECT
-public:
-	explicit PasteButton(QWidget* parent = nullptr) : ActionButton(QStringLiteral("paste"), parent) {}
-};
-
-///////////////////////////////////////
-
-class CancelButton : public ActionButton
-{
-	Q_OBJECT
-public:
-	explicit CancelButton(QWidget* parent = nullptr) : ActionButton(QStringLiteral("cancel"), parent) {}
-};
-
-///////////////////////////////////////
-
-class GifButton : public ActionButton
-{
-	Q_OBJECT
-public:
-	explicit GifButton(QWidget* parent = nullptr) : ActionButton(QStringLiteral("GIF"), parent) {}
-};
-
-///////////////////////////////////////
+namespace Ui {
+	class LSnapSelectionActionBar;
+}
 
 class LSnapSelectionActionBar : public QWidget
 {
 	Q_OBJECT
 public:
     explicit LSnapSelectionActionBar(QWidget* parent);
-    void addButton(ActionButton* btn);
-    void clearButtons();
-    void addDefaultButtons();
 
 public slots:
 	void onDrawingModeChanged(int mode);
@@ -115,11 +37,9 @@ signals:
     void shapeModeChanged(int mode);   // 0 = 截图  1 = 矩形，2 = 椭圆
 
 private:
-    QVBoxLayout* m_pVRootLayout = nullptr;
-	QHBoxLayout* m_pHButtonLayout = nullptr;
 	LSnapDrawPanel* m_pDrawPanel = nullptr;   // 绘图面板
     bool optionsVisible_ = false;
-
+	Ui::LSnapSelectionActionBar* m_ui = nullptr;
     //GIF相关
     LSnapGifPanel* m_pGifPanel = nullptr;
     bool m_gifVisible = false;

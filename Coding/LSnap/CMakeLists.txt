@@ -18,6 +18,7 @@ find_package(Qt5 COMPONENTS Core Widgets Gui REQUIRED)
 
 set(UI_FILES 
     "lsnapview/lsnapdrawpanel.ui"
+    "lsnapview/lsnapselectionactionbar.ui"
 )
 
 set(RCC_FILES 

@@ -50,6 +50,7 @@ private:
 
 private:
     Ui::LSnapDrawPanel *ui;
+
     int currentDrawingMode_ = 0; // 0: 无, 1: 矩形, 2: 椭圆
     int currentLineWidth_ = 2;
 };

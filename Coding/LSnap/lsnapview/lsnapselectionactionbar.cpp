@@ -1,41 +1,101 @@
 #include "lsnapselectionactionbar.h"
 #include "lsnapview/lsnapdrawpanel.h"
 #include "lsnapgifpanel.h"
-#include <QHBoxLayout>
+#include "ui_lsnapselectionactionbar.h"
 
 LSnapSelectionActionBar::LSnapSelectionActionBar(QWidget* parent)
-    : QWidget(parent)
+    : QWidget(parent), m_ui(new Ui::LSnapSelectionActionBar)
 {
+    m_ui->setupUi(this);
+
     setAttribute(Qt::WA_StyledBackground, true);
-    m_pVRootLayout = new QVBoxLayout(this);
-    m_pVRootLayout->setContentsMargins(6, 4, 6, 4);
-    m_pVRootLayout->setSpacing(4);
-    m_pHButtonLayout = new QHBoxLayout();
-    m_pHButtonLayout->setContentsMargins(0, 0, 0, 0);
-    m_pHButtonLayout->setSpacing(6);
+    m_ui->btnSave->setIcon(QIcon(":/icons/stu-revoke-lined.svg"));
+    m_ui->btnSave->setIconSize(QSize(40, 40));
+    connect(m_ui->btnSave, &QPushButton::clicked, this, &LSnapSelectionActionBar::saveClicked);
 
-    m_pVRootLayout->addLayout(m_pHButtonLayout);
-    //setStyleSheet("QWidget{background-color:rgba(40,40,40,200);border-radius:6px;}");
+    m_ui->btnCopy->setIcon(QIcon(":/icons/stu-revoke-lined.svg"));
+    m_ui->btnCopy->setIconSize(QSize(40, 40));
+    connect(m_ui->btnCopy, &QPushButton::clicked, this, &LSnapSelectionActionBar::copyClicked);
 
+    m_ui->btnPaste->setIcon(QIcon(":/icons/stu-revoke-lined.svg"));
+    m_ui->btnPaste->setIconSize(QSize(40, 40));
+    connect(m_ui->btnPaste, &QPushButton::clicked, this, &LSnapSelectionActionBar::pasteClicked);
+
+    m_ui->btnCancel->setIcon(QIcon(":/icons/stu-revoke-lined.svg"));
+    m_ui->btnCancel->setIconSize(QSize(40, 40));
+    connect(m_ui->btnCancel, &QPushButton::clicked, this, &LSnapSelectionActionBar::cancelClicked);
+
+    m_ui->btnDraw->setIcon(QIcon(":/icons/stu-revoke-lined.svg"));
+    m_ui->btnDraw->setIconSize(QSize(40, 40));
+    connect(m_ui->btnDraw, &QPushButton::clicked, this, [this] {
+        optionsVisible_ = !optionsVisible_;
+        if (m_pDrawPanel)
+        {
+            if (optionsVisible_)
+            {
+                updateDrawPanelPosition();
+                m_pDrawPanel->show();
+            }
+            else
+            {
+                m_ui->verticalLayout->removeWidget(m_pDrawPanel);
+                m_pDrawPanel->hide();
+            }
+        }
+        adjustSize();
+        if (!optionsVisible_)
+            emit shapeModeChanged(-1);
+    });
+
+    m_ui->btnGif->setIcon(QIcon(":/icons/stu-revoke-lined.svg"));
+    m_ui->btnGif->setIconSize(QSize(40, 40));
+    connect(m_ui->btnGif, &QPushButton::clicked, this, [this] {
+        if (optionsVisible_)
+            optionsVisible_ = false;
+        
+        const bool newVisible = !m_gifVisible;
+        m_gifVisible = newVisible;
+        if (m_pGifPanel)
+        {
+            if (newVisible)
+            {
+                updateGifPanelPosition();
+                m_pGifPanel->show();
+                m_pGifPanel->raise();
+            }
+            else
+            {
+                m_ui->verticalLayout->removeWidget(m_pGifPanel);
+                m_pGifPanel->hide();
+                emit gifCancel();
+            }
+        }
+        adjustSize();
+        if (!newVisible)
+            emit shapeModeChanged(-1);
+    });
+
+    // Apply common style to all buttons (from ActionButton)
+    // QString buttonStyle = "QPushButton{background-color:rgba(60,60,60,180);border:1px solid rgba(100,100,100,150);"
+    //                      "border-radius:4px;color:white;padding:6px 12px;font-size:11px;min-width:16px;min-height:12px;}"
+    //                      "QPushButton:hover{background-color:rgba(80,80,80,200);}"
+    //                      "QPushButton:pressed{background-color:rgba(100,100,100,200);}";
+    // m_ui->btnSave->setStyleSheet(buttonStyle);
+    // m_ui->btnCopy->setStyleSheet(buttonStyle);
+    // m_ui->btnPaste->setStyleSheet(buttonStyle);
+    // m_ui->btnCancel->setStyleSheet(buttonStyle);
+    // m_ui->btnDraw->setStyleSheet(buttonStyle);
+    // m_ui->btnGif->setStyleSheet(buttonStyle);
+
+    // Initialize panels
     m_pDrawPanel = new LSnapDrawPanel(this);
-    //m_pVRootLayout->addWidget(m_pDrawPanel);
     m_pDrawPanel->hide();
     connect(m_pDrawPanel, &LSnapDrawPanel::drawingModeChanged, this, &LSnapSelectionActionBar::onDrawingModeChanged);
     connect(m_pDrawPanel, &LSnapDrawPanel::lineWidthChanged, this, &LSnapSelectionActionBar::onLineWidthChanged);
-
-
-    //GIF
     m_pGifPanel = new LSnapGifPanel(this);
-    //m_pVRootLayout->addWidget(m_pGifPanel);
     m_pGifPanel->hide();
-
-    //TODO 手动开始 手动结束  或者 6s自动结束
     connect(m_pGifPanel, &LSnapGifPanel::gifCaptureStart, this, &LSnapSelectionActionBar::gifStartForOverlayWindow);
     connect(m_pGifPanel, &LSnapGifPanel::gifCaptureStop, this, &LSnapSelectionActionBar::gifStopForOverlayWindow);
-    // connect(m_pGifPanel_, &LSnapGifPanel::gifCancel, this, &LSnapSelectionActionBar::gifCancel);
-    //connect(gifPanel_, &GifPanel::startRequested, this, &SelectionActionBar::gifStart);
-    //connect(gifPanel_, &GifPanel::stopRequested,  this, &SelectionActionBar::gifStop);
-    //connect(gifPanel_, &GifPanel::cancelRequested,this, &SelectionActionBar::gifCancel);
 }
 
 //TODO color
@@ -46,107 +106,7 @@ void LSnapSelectionActionBar::onDrawingModeChanged(int mode)
 
 void LSnapSelectionActionBar::onLineWidthChanged(int width) // TODO 完善线宽的逻辑
 {
-    //if (overlayWindow_) {
-    //    overlayWindow_->setLineWidth(width);
-    //}
-}
 
-void LSnapSelectionActionBar::addDefaultButtons()
-{
-	addButton(new SaveButton(this));
-	addButton(new CopyButton(this));
-	addButton(new PasteButton(this));
-	addButton(new CancelButton(this));
-	addButton(new DrawButton(this));
-	addButton(new GifButton(this));
-}
-
-void LSnapSelectionActionBar::addButton(ActionButton* btn)
-{
-    if (!btn)
-        return;
-
-    m_pHButtonLayout->addWidget(btn);
-    const QString t = btn->text();
-    if (t.contains(QStringLiteral("save")))
-        connect(btn, &ActionButton::activated, this, &LSnapSelectionActionBar::saveClicked);
-    else if (t.contains(QStringLiteral("copy")))
-        connect(btn, &ActionButton::activated, this, &LSnapSelectionActionBar::copyClicked);
-    else if (t.contains(QStringLiteral("paste")))
-        connect(btn, &ActionButton::activated, this, &LSnapSelectionActionBar::pasteClicked);
-    else if (t.contains(QStringLiteral("cancel")))
-        connect(btn, &ActionButton::activated, this, &LSnapSelectionActionBar::cancelClicked);
-    else if (t.contains(QStringLiteral("draw"))) //TODO bug
-    {
-        connect(btn, &ActionButton::activated, this, [this, btn]
-            {
-                optionsVisible_ = !optionsVisible_;
-                if (m_pDrawPanel)
-                {
-                    if (optionsVisible_)
-                    {
-                        updateDrawPanelPosition();
-                        m_pDrawPanel->show();
-                    }
-                    else
-                    {
-                        m_pVRootLayout->removeWidget(m_pDrawPanel);
-                        m_pDrawPanel->hide();
-                    }
-                }
-                //emit drawClicked();
-                adjustSize();
-                if (!optionsVisible_)
-                    emit shapeModeChanged(-1);
-            });
-    }
-    else if (t.contains(QStringLiteral("GIF")))//TODO bug
-    {
-    connect(btn, &ActionButton::activated, this, [this, btn]
-        {
-            if (optionsVisible_)
-            {
-                optionsVisible_ = false;
-                // if (m_pDrawPanel) 
-                // {
-                //     m_pVRootLayout->removeWidget(m_pDrawPanel);
-                //     m_pDrawPanel->hide();
-                // }
-                // emit shapeModeChanged(-1);
-            }
-            // 切换 GIF 面板（仿照 draw 的显示/隐藏逻辑）
-            const bool newVisible = !m_gifVisible;
-            m_gifVisible = newVisible;
-            if (m_pGifPanel)
-            {
-                if (newVisible)
-                {
-                    updateGifPanelPosition();
-                    m_pGifPanel->show();
-                    m_pDrawPanel->raise();
-                }
-                else
-                {
-                    m_pVRootLayout->removeWidget(m_pGifPanel);
-                    m_pGifPanel->hide();
-                    emit gifCancel();
-                }
-            }
-            //emit gifClicked();
-            adjustSize();
-            if (!newVisible)
-                emit shapeModeChanged(-1);  // 仿照 draw 添加关闭信号
-        });
-    }
-}
-
-void LSnapSelectionActionBar::clearButtons()
-{
-    while (auto item = m_pHButtonLayout->takeAt(0))
-    {
-        if (auto w = item->widget()) w->deleteLater();
-        delete item;
-    }
 }
 
 void LSnapSelectionActionBar::updateDrawPanelPosition()
@@ -154,8 +114,14 @@ void LSnapSelectionActionBar::updateDrawPanelPosition()
     if (!m_pDrawPanel)
         return;
     
-    m_pVRootLayout->removeWidget(m_pDrawPanel);
-    m_pVRootLayout->insertWidget(1, m_pDrawPanel);
+    // m_pVRootLayout->removeWidget(m_pDrawPanel);
+    // m_pVRootLayout->insertWidget(1, m_pDrawPanel);
+    //m_ui->verticalLayout->removeWidget(m_pDrawPanel);
+    //m_ui->verticalLayout->insertWidget(1, m_pDrawPanel);
+    //m_pDrawPanel->setParent(this);
+    m_pDrawPanel->move(6, height() - m_pDrawPanel->height() - 4 + 40 + 6);
+    //m_pDrawPanel->raise();
+
 }
 
 void LSnapSelectionActionBar::updateGifPanelPosition()
@@ -163,6 +129,12 @@ void LSnapSelectionActionBar::updateGifPanelPosition()
     if (!m_pGifPanel)
         return;
 
-    m_pVRootLayout->removeWidget(m_pGifPanel);
-    m_pVRootLayout->insertWidget(1, m_pGifPanel);
+    // m_pVRootLayout->removeWidget(m_pGifPanel);
+    // m_pVRootLayout->insertWidget(1, m_pGifPanel);
+ /*   m_ui->verticalLayout->removeWidget(m_pGifPanel);
+    m_ui->verticalLayout->insertWidget(1, m_pGifPanel);*/
+
+    //m_pGifPanel->setParent(this);
+    m_pGifPanel->move(6, height() - m_pGifPanel->height() - 4 + 40 + 6);  // 左下角，留出边距
+    //m_pGifPanel->raise();
 }
