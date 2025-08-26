@@ -76,7 +76,7 @@ void LSnapSelectionActionBar::addButton(ActionButton* btn)
         connect(btn, &ActionButton::activated, this, &LSnapSelectionActionBar::pasteClicked);
     else if (t.contains(QStringLiteral("cancel")))
         connect(btn, &ActionButton::activated, this, &LSnapSelectionActionBar::cancelClicked);
-    else if (t.contains(QStringLiteral("draw")))
+    else if (t.contains(QStringLiteral("draw"))) //TODO bug
     {
         connect(btn, &ActionButton::activated, this, [this, btn]
             {
@@ -100,7 +100,7 @@ void LSnapSelectionActionBar::addButton(ActionButton* btn)
                     emit shapeModeChanged(-1);
             });
     }
-    else if (t.contains(QStringLiteral("GIF")))
+    else if (t.contains(QStringLiteral("GIF")))//TODO bug
     {
     connect(btn, &ActionButton::activated, this, [this, btn]
         {

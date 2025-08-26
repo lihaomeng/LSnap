@@ -24,7 +24,7 @@ LSnapOverlayWindow::LSnapOverlayWindow(QWidget* parent) : QWidget(parent)
     setFocusPolicy(Qt::StrongFocus);
 
     captureScreen();
-    createButtonBar();//  创建按钮条 一级控件
+    createButtonBar();// TOTO 使用ui界面替换
 }
 
 void LSnapOverlayWindow::captureScreen()
@@ -67,12 +67,10 @@ void LSnapOverlayWindow::paintEvent(QPaintEvent*)
     p.setPen(pen);
     p.setBrush(Qt::NoBrush);
     p.drawRect(m_selection);
-
     if (m_snapStatus == 1)
        drawResizeHandles(p);
-
-    // 矩形 椭圆这些图层
-    QPen keepPen(QColor(0, 180, 255), 2);
+    
+    QPen keepPen(QColor(0, 180, 255), 2);// 矩形 椭圆这些图层
     m_drawing.paint(p);
     p.setPen(keepPen);
 }
@@ -139,7 +137,9 @@ void LSnapOverlayWindow::createButtonBar()
     {
         m_pGifRecorder = new GifRecorder(this);
         m_pGifRecorder->setFrameSource([this]{ return getSelectionPixmap1(true).toImage(); });
+        
     }
+    connect(m_pGifRecorder, &GifRecorder::saveProgress, this, &LSnapOverlayWindow::onGifProgress);
    
     connect(pSelectionActionBar, &LSnapSelectionActionBar::gifStartForOverlayWindow, this, [this] {
         m_pGifRecorder->startCapture();
@@ -151,6 +151,11 @@ void LSnapOverlayWindow::createButtonBar()
         m_recordHollow = false;
         update();
         });
+}
+
+void LSnapOverlayWindow::onGifProgress(int currentFrame, int totalFrames)
+{
+    //TODO GIF生成过程
 }
 
 void LSnapOverlayWindow::keyPressEvent(QKeyEvent* pKeyEvent)  // esc close shadow
@@ -349,7 +354,6 @@ bool LSnapOverlayWindow::handleResizeMove(QMouseEvent* e)
         return true;  // Move 操作直接返回
     }
 
-    // 最小尺寸检查
     if (newRect.width() < 10)
     {
         if (m_currentHandle == TopLeft || m_currentHandle == Left || m_currentHandle == BottomLeft)

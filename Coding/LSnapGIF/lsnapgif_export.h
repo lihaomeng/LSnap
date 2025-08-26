@@ -6,5 +6,6 @@
  #else
  #define LSNAPGIF_EXPORT __declspec(dllimport)
  #endif
+ 
 #endif // LSNAPGIF_EXPORT_H
 

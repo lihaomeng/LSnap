@@ -1,12 +1,12 @@
 #ifndef LSNAPOVERLAYWINDOW_H
 #define LSNAPOVERLAYWINDOW_H
 
+#include "lsnapdrawinglayer.h"
 #include <QWidget>
 #include <QRect>
 #include <QPoint>
 #include <QColor>
 #include <QPainter>
-#include "lsnapdrawinglayer.h"
 
 class LSnapDrawingLayer;
 class GifRecorder;
@@ -17,6 +17,9 @@ class LSnapOverlayWindow : public QWidget
 public:
     explicit LSnapOverlayWindow(QWidget* parent = nullptr);
     QRect selection() const { return m_selection; }
+
+public slots:
+    void onGifProgress(int currentFrame, int totalFrames);
 
 signals:
     void canceled();
@@ -79,7 +82,7 @@ private:
     QPoint m_currrentPos;
     QRect m_selection;  //select region after press F1
     
-    bool m_recordHollow = false;
+    bool m_recordHollow = false; // 是否开启GIF录制
 
     ResizeHandle m_currentHandle = None;
     ResizeHandle m_hoveredHandle = None;
@@ -96,8 +99,6 @@ private:
     void captureScreen();
     void copySelectionToClipboard();
     QPixmap getSelectionPixmap();
-    //QPixmap getSelectionPixmap(bool recapture = false);
-    
     QPixmap getSelectionPixmap1(bool live = false);
 
     // 边界控制相关方法
@@ -105,7 +106,6 @@ private:
     QRect getHandleRect(ResizeHandle handle) const;
     void updateCursorForHandle(ResizeHandle handle);
     void drawResizeHandles(QPainter& painter);
-    
     void updateAndShowActionBar();
     void hideActionBar();
  
