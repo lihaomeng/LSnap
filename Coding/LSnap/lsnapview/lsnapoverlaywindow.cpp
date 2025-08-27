@@ -4,27 +4,29 @@
 #include "lsnapstickerwindow/lsnappicstickerwindow.h"
 #include "lsnapstickerwindow/stickerwindow.h"
 #include "gifrecorder.h"
+#include "lsnaphistory.h"
 #include <QPainter>
 #include <QGuiApplication>
 #include <QScreen>
 #include <QKeyEvent>
 #include <QMouseEvent>
 #include <QPixmap>
-#include <QPushButton>
-#include <QHBoxLayout>
 #include <QClipboard>
 
 LSnapOverlayWindow::LSnapOverlayWindow(QWidget* parent) : QWidget(parent)
 {
-    setWindowFlags(Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
+    setWindowFlags(Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint | Qt::Tool);
     setAttribute(Qt::WA_NoSystemBackground, true);
     setAttribute(Qt::WA_TranslucentBackground, true);
     setAttribute(Qt::WA_DeleteOnClose, true);
+    setAttribute(Qt::WA_ShowWithoutActivating, true);
     setMouseTracking(true);
     setFocusPolicy(Qt::StrongFocus);
-
+    //showMaximized();
     captureScreen();
-    createButtonBar();// TOTO 使用ui界面替换
+    createButtonBar();
+
+    m_pHistory = new LSnapHistory(this);
 }
 
 void LSnapOverlayWindow::captureScreen()
@@ -46,22 +48,22 @@ void LSnapOverlayWindow::paintEvent(QPaintEvent*)
 
     //TODO for test
     //if (!m_recordHollow && !m_screenShot.isNull())
-    //    p.drawPixmap(rect(), m_screenShot, m_screenShot.rect());
+    //   p.drawPixmap(rect(), m_screenShot, m_screenShot.rect());
 
-    const QColor overlay(0, 0, 0, 120);
+    const QColor overlayColor(0, 0, 0, 120);
     if (!m_recordHollow)
     {
         if (m_selection.isNull() || !m_selection.isValid())
         {
-            p.fillRect(rect(), overlay);
+            p.fillRect(rect(), overlayColor);
             return;
         }
         QRect sel = m_selection;
         const int w = width(), h = height();
-        p.fillRect(QRect(0, 0, w, sel.top()), overlay);
-        p.fillRect(QRect(0, sel.top(), sel.left(), sel.height()), overlay);
-        p.fillRect(QRect(sel.right() + 1, sel.top(), w - sel.right() - 1, sel.height()), overlay);
-        p.fillRect(QRect(0, sel.bottom() + 1, w, h - sel.bottom() - 1), overlay);
+        p.fillRect(QRect(0, 0, w, sel.top()), overlayColor);
+        p.fillRect(QRect(0, sel.top(), sel.left(), sel.height()), overlayColor);
+        p.fillRect(QRect(sel.right() + 1, sel.top(), w - sel.right() - 1, sel.height()), overlayColor);
+        p.fillRect(QRect(0, sel.bottom() + 1, w, h - sel.bottom() - 1), overlayColor);
     }
 
     QPen pen(QColor(0, 180, 255), 2);
@@ -80,6 +82,7 @@ void LSnapOverlayWindow::drawResizeHandles(QPainter& painter)
 {
     if (m_selection.isNull())
         return;
+
     painter.save();
     QColor handleColor(0, 180, 255);
     QColor handleBorder(255, 255, 255);
@@ -113,6 +116,9 @@ void LSnapOverlayWindow::createButtonBar()
     
     connect(pSelectionActionBar, &LSnapSelectionActionBar::copyClicked, this, [this]{
         copySelectionToClipboard();
+        QPixmap selected = getSelectionPixmap();
+        if (!selected.isNull() && m_pHistory)
+            m_pHistory->saveImageAsync(m_screenShot, "copy_screenshot");
         close();
     });
 
@@ -124,6 +130,8 @@ void LSnapOverlayWindow::createButtonBar()
         QPixmap selected = getSelectionPixmap();
         if (!selected.isNull())
         {
+            if (m_pHistory)
+                m_pHistory->saveImageAsync(selected, "sticker_screenshot");
             //LSnapPicStickerWindow* pPicSticker = new LSnapPicStickerWindow(selected);  //TODO 存在bug 暂时不使用
             StickerWindow* pPicSticker = new StickerWindow(selected);
             pPicSticker->move(mapToGlobal(m_selection.topLeft()));
@@ -255,7 +263,7 @@ bool LSnapOverlayWindow::handleResizePress(QMouseEvent* e)
     if (m_snapStatus != 1)
         return false;
 
-    m_pActionBar->hide(); // TODO 移动或者改变大小时，选择条消失  add动画
+    m_pActionBar->hide(); // TODO add animation make it's more smart
     m_currentHandle = getHandleAt(e->pos());
     if (m_currentHandle != None)
     {
@@ -338,12 +346,10 @@ bool LSnapOverlayWindow::handleResizeMove(QMouseEvent* e)
         break;
     case Move:
         newRect = m_resizeStartRect.translated(delta);
-        // 水平边界检查
         if (newRect.left() < screenBounds.left())
             newRect.moveLeft(screenBounds.left());
         else if (newRect.right() > screenBounds.right())
             newRect.moveRight(screenBounds.right());
-        // 垂直边界检查
         if (newRect.top() < screenBounds.top())
             newRect.moveTop(screenBounds.top());
         else if (newRect.bottom() > screenBounds.bottom())
@@ -351,7 +357,7 @@ bool LSnapOverlayWindow::handleResizeMove(QMouseEvent* e)
         m_selection = newRect;
         update();
         e->accept();
-        return true;  // Move 操作直接返回
+        return true;
     }
 
     if (newRect.width() < 10)

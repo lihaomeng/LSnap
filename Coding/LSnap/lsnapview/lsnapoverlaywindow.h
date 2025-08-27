@@ -2,6 +2,7 @@
 #define LSNAPOVERLAYWINDOW_H
 
 #include "lsnapdrawinglayer.h"
+#include "lsnaphistory.h"
 #include <QWidget>
 #include <QRect>
 #include <QPoint>
@@ -74,8 +75,8 @@ private:
     // button bar
     QWidget* m_pActionBar = nullptr;
     void createButtonBar();
+    int m_snapStatus = 0; // 0 未选择  1 已经选择
 
-    int m_snapStatus = 0;
     // about drag
     bool m_bDragging = false;
     QPoint m_pressPos;
@@ -93,6 +94,9 @@ private:
     QRect m_resizeStartRect;
 
     LSnapDrawingLayer m_drawing; //绘图相关
+
+    //History
+    LSnapHistory* m_pHistory = nullptr;
 
     //GIF
     GifRecorder* m_pGifRecorder = nullptr;

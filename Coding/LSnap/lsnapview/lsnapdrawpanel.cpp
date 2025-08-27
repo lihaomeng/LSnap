@@ -1,6 +1,5 @@
 #include "lsnapdrawpanel.h"
 #include "ui_lsnapdrawpanel.h"
-#include <QDebug>
 
 LSnapDrawPanel::LSnapDrawPanel(QWidget *parent)
     : QFrame(parent)
@@ -9,60 +8,13 @@ LSnapDrawPanel::LSnapDrawPanel(QWidget *parent)
     ui->setupUi(this);
     setupConnections();
     updateButtonStates();
-    
-    // init
     setDrawingMode(0);
     setLineWidth(2);
-}
 
-LSnapDrawPanel::~LSnapDrawPanel()
-{
-    delete ui;
-}
-
-QPushButton* LSnapDrawPanel::getLineWidthBtn() const
-{
-    return ui->lineWidthBtn;
-}
-
-QPushButton* LSnapDrawPanel::getRectBtn() const
-{
-    return ui->rectBtn;
-}
-
-QPushButton* LSnapDrawPanel::getEllipseBtn() const
-{
-    return ui->ellipseBtn;
-}
-
-void LSnapDrawPanel::setDrawingMode(int mode)
-{
-    if (currentDrawingMode_ != mode)
-    {
-        currentDrawingMode_ = mode;
-        updateButtonStates();
-        emit drawingModeChanged(mode);
-    }
-}
-
-int LSnapDrawPanel::getDrawingMode() const
-{
-    return currentDrawingMode_;
-}
-
-void LSnapDrawPanel::setLineWidth(int width)
-{
-    if (currentLineWidth_ != width)
-    {
-        currentLineWidth_ = qMax(1, qMin(width, 20)); // 限制在1-20之间
-        updateButtonStates();
-        emit lineWidthChanged(currentLineWidth_);
-    }
-}
-
-int LSnapDrawPanel::getLineWidth() const
-{
-    return currentLineWidth_;
+    ui->rectBtn->setIcon(QIcon(":/icons/save.svg"));
+    ui->rectBtn->setIconSize(QSize(40, 40));
+    ui->ellipseBtn->setIcon(QIcon(":/icons/save.svg"));
+    ui->ellipseBtn->setIconSize(QSize(40, 40));
 }
 
 void LSnapDrawPanel::setupConnections()
@@ -74,18 +26,58 @@ void LSnapDrawPanel::setupConnections()
 
 void LSnapDrawPanel::updateButtonStates()
 {
-    ui->rectBtn->setDown(currentDrawingMode_ == 1);
-    ui->ellipseBtn->setDown(currentDrawingMode_ == 2);
-    ui->lineWidthBtn->setText(QString("线宽: %1").arg(currentLineWidth_));
-    QString pressedStyle = "QPushButton { background-color: #4CAF50; color: white; border: 1px solid #45a049; }";
-    QString normalStyle = "QPushButton { background-color: #f0f0f0; border: 1px solid #ccc; }";
-    ui->rectBtn->setStyleSheet(currentDrawingMode_ == 1 ? pressedStyle : normalStyle);
-    ui->ellipseBtn->setStyleSheet(currentDrawingMode_ == 2 ? pressedStyle : normalStyle);
+    ui->lineWidthBtn->setText(QString("width: %1").arg(m_currentLineWidth));
+    const QString& normalStyle = "QPushButton{background-color:transparent;border:none;"
+        "border-radius:4px;color:black;padding:6px 12px;font-size:11px;min-width:16px;min-height:12px;}"
+        "QPushButton:hover{background-color:rgba(0,0,0,30);}"
+        "QPushButton:pressed{background-color:rgba(0,0,0,50);}";
+        
+    const QString& pressedStyle = "QPushButton{background-color:rgba(76,175,80,50);border:none;"
+    "border-radius:4px;color:#4CAF50;padding:6px 12px;font-size:11px;min-width:16px;min-height:12px;}"
+    "QPushButton:hover{background-color:rgba(76,175,80,70);}"
+    "QPushButton:pressed{background-color:rgba(76,175,80,90);}";
+    ui->rectBtn->setStyleSheet(m_currentDrawingMode == 1 ? pressedStyle : normalStyle);
+    ui->ellipseBtn->setStyleSheet(m_currentDrawingMode == 2 ? pressedStyle : normalStyle);
+}
+
+LSnapDrawPanel::~LSnapDrawPanel()
+{
+    delete ui;
+}
+
+void LSnapDrawPanel::setDrawingMode(int mode)
+{
+    if (m_currentDrawingMode != mode)
+    {
+        m_currentDrawingMode = mode;
+        updateButtonStates();
+        emit drawingModeChanged(mode);
+    }
+}
+
+int LSnapDrawPanel::getDrawingMode() const
+{
+    return m_currentDrawingMode;
+}
+
+void LSnapDrawPanel::setLineWidth(int width)
+{
+    if (m_currentLineWidth != width)
+    {
+        m_currentLineWidth = qMax(1, qMin(width, 20));
+        updateButtonStates();
+        emit lineWidthChanged(m_currentLineWidth);
+    }
+}
+
+int LSnapDrawPanel::getLineWidth() const
+{
+    return m_currentLineWidth;
 }
 
 void LSnapDrawPanel::onRectBtnClicked()
 {
-    if (currentDrawingMode_ == 1)
+    if (m_currentDrawingMode == 1)
         setDrawingMode(0);
     else
         setDrawingMode(1);
@@ -94,7 +86,7 @@ void LSnapDrawPanel::onRectBtnClicked()
 
 void LSnapDrawPanel::onEllipseBtnClicked()
 {
-    if (currentDrawingMode_ == 2)
+    if (m_currentDrawingMode == 2)
         setDrawingMode(0);
     else 
         setDrawingMode(2);
@@ -103,8 +95,8 @@ void LSnapDrawPanel::onEllipseBtnClicked()
 
 void LSnapDrawPanel::onLineWidthBtnClicked()
 {
-    int newWidth = currentLineWidth_;
-    switch (currentLineWidth_)
+    int newWidth = m_currentLineWidth;
+    switch (m_currentLineWidth)
     {
     case 2: newWidth = 4; break;
     case 4: newWidth = 6; break;

@@ -1,11 +1,12 @@
 #include "lsnapapplicationcore.h"
+#include "lsnapview/lsnapsystemtray.h"
 #include "lsnapview/lsnapoverlaywindow.h"
-
 #include <QGuiApplication>
 #include <QScreen>
 
 LSnapApplicationCore::LSnapApplicationCore(QObject* parent) : QObject(parent)
 {
+    initSystemtrayMenu();
 }
 
 LSnapApplicationCore::~LSnapApplicationCore()
@@ -31,4 +32,10 @@ void LSnapApplicationCore::onOverlayCanceled()
 {
     if (m_pOverlay)
         m_pOverlay->close();
+}
+
+void LSnapApplicationCore::initSystemtrayMenu()
+{
+    m_pSystemTray = new LSnapSystemTray(this);
+    m_pSystemTray->show();
 }

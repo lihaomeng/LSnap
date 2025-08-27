@@ -2,33 +2,19 @@
 #define LSnapDrawPanel_H
 
 #include <QFrame>
-#include <QPushButton>
-#include <QHBoxLayout>
 
-QT_BEGIN_NAMESPACE
 namespace Ui {
 class LSnapDrawPanel;
 }
-QT_END_NAMESPACE
 
 class LSnapDrawPanel : public QFrame
 {
     Q_OBJECT
-
 public:
     explicit LSnapDrawPanel(QWidget *parent = nullptr);
     ~LSnapDrawPanel();
-
-    // 获取UI控件的方法
-    QPushButton* getLineWidthBtn() const;
-    QPushButton* getRectBtn() const;
-    QPushButton* getEllipseBtn() const;
-
-    // 设置绘图模式
-    void setDrawingMode(int mode); // 0: 无, 1: 矩形, 2: 椭圆
+    void setDrawingMode(int mode);
     int getDrawingMode() const;
-
-    // 设置线条宽度
     void setLineWidth(int width);
     int getLineWidth() const;
 
@@ -50,9 +36,7 @@ private:
 
 private:
     Ui::LSnapDrawPanel *ui;
-
-    int currentDrawingMode_ = 0; // 0: 无, 1: 矩形, 2: 椭圆
-    int currentLineWidth_ = 2;
+    int m_currentDrawingMode = 0; // 0: no, 1: rect, 2: Ellipse
+    int m_currentLineWidth = 2;
 };
-
 #endif // LSnapDrawPanel_H

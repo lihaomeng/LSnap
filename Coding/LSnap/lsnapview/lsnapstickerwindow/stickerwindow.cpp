@@ -18,6 +18,11 @@ StickerWindow::StickerWindow(const QPixmap& pixmap, QWidget* parent)
         resize(200, 150);
 }
 
+StickerWindow::~StickerWindow()
+{
+    pixmap_ = QPixmap();
+}
+
 void StickerWindow::setPixmap(const QPixmap& pixmap)
 {
     pixmap_ = pixmap;

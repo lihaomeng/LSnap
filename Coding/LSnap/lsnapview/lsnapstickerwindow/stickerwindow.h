@@ -8,7 +8,7 @@ class StickerWindow : public QWidget
     Q_OBJECT
 public:
     explicit StickerWindow(const QPixmap& pixmap, QWidget* parent = nullptr);
-    
+    ~StickerWindow();
     void setPixmap(const QPixmap& pixmap);
     QPixmap pixmap() const { return pixmap_; }
     

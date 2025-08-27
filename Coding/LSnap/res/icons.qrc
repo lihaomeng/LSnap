@@ -1,5 +1,10 @@
 <RCC>
     <qresource prefix="/">
         <file>icons/stu-revoke-lined.svg</file>
+        <file>icons/cancel.svg</file>
+        <file>icons/copy.svg</file>
+        <file>icons/paste.svg</file>
+        <file>icons/rect.svg</file>
+        <file>icons/save.svg</file>
     </qresource>
 </RCC>

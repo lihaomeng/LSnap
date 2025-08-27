@@ -3,6 +3,7 @@
 
 #include <QObject>
 
+class LSnapSystemTray;
 class LSnapOverlayWindow;
 class LSnapApplicationCore : public QObject
 {
@@ -16,6 +17,10 @@ public slots:
     void onOverlayCanceled();
 
 private:
+    void initSystemtrayMenu();
+
+private:
+    LSnapSystemTray* m_pSystemTray = nullptr;
     LSnapOverlayWindow* m_pOverlay = nullptr;
 };
 #endif // LSNAPAPPLICATIONCORE_H

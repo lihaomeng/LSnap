@@ -35,6 +35,7 @@ set(HEADER_FILES
     "lsnapview/lsnapstickerwindow/stickerwindow.h"
     "lsnapview/lsnapstickerwindow/lsnapstickerwindowbase.h"
     "lsnapview/lsnapstickerwindow/lsnappicstickerwindow.h"
+    "lsnapview/lsnapsystemtray.h"
 )
 
 set(CPP_FILES 
@@ -48,6 +49,7 @@ set(CPP_FILES
     "lsnapview/lsnapstickerwindow/stickerwindow.cpp"
     "lsnapview/lsnapstickerwindow/lsnapstickerwindowbase.cpp"
     "lsnapview/lsnapstickerwindow/lsnappicstickerwindow.cpp"
+    "lsnapview/lsnapsystemtray.cpp"
 )
 
 qt5_wrap_ui(UI_HEADERS ${UI_FILES})
@@ -60,6 +62,7 @@ target_link_libraries(${PROJECT_NAME}
     Qt5::Core
     Qt5::Gui
     LSnapGIF 
+    LSnapHistory
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_SOURCE_DIR}/LSnapGIF")
