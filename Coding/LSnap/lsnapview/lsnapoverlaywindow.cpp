@@ -12,6 +12,7 @@
 #include <QMouseEvent>
 #include <QPixmap>
 #include <QClipboard>
+#include <QScopedPointer>
 
 LSnapOverlayWindow::LSnapOverlayWindow(QWidget* parent) : QWidget(parent)
 {
@@ -22,25 +23,17 @@ LSnapOverlayWindow::LSnapOverlayWindow(QWidget* parent) : QWidget(parent)
     setAttribute(Qt::WA_ShowWithoutActivating, true);
     setMouseTracking(true);
     setFocusPolicy(Qt::StrongFocus);
-    //showMaximized();
-    captureScreen();
+
+    //captureScreen();
+    m_pScreenCapture = new LSnapScreenCapture(this);
+    m_pScreenCapture->captureScreen();
+
     createButtonBar();
 
     m_pHistory = new LSnapHistory(this);
 }
 
-void LSnapOverlayWindow::captureScreen()
-{
-    QScreen* scr = QGuiApplication::primaryScreen();
-    if (!scr)
-        return;
-
-    m_captureVirtualGeom = scr->virtualGeometry();
-    m_captureDpr = scr->devicePixelRatio();
-    const QRect v = m_captureVirtualGeom;
-    m_screenShot = scr->grabWindow(0, v.x(), v.y(), v.width(), v.height());
-    m_screenShot.setDevicePixelRatio(m_captureDpr);
-}
+/////////////////////////////////////////  Paint 
 
 void LSnapOverlayWindow::paintEvent(QPaintEvent*)
 {
@@ -93,13 +86,14 @@ void LSnapOverlayWindow::drawResizeHandles(QPainter& painter)
         ResizeHandle handle = static_cast<ResizeHandle>(i);
         QRect handleRect = getHandleRect(handle);
         if (m_hoveredHandle == handle)
-            painter.setBrush(QBrush(handleColor.lighter(150))); // 悬停时高亮
+            painter.setBrush(QBrush(handleColor.lighter(150)));
         else
             painter.setBrush(QBrush(handleColor));
         painter.drawRect(handleRect);
     }
     painter.restore();
 }
+//////////////////////////////////////////////////////////////////////////
 
 void LSnapOverlayWindow::createButtonBar()
 {
@@ -116,9 +110,9 @@ void LSnapOverlayWindow::createButtonBar()
     
     connect(pSelectionActionBar, &LSnapSelectionActionBar::copyClicked, this, [this]{
         copySelectionToClipboard();
-        QPixmap selected = getSelectionPixmap();
+       /* QPixmap selected = getSelectionPixmap();
         if (!selected.isNull() && m_pHistory)
-            m_pHistory->saveImageAsync(m_screenShot, "copy_screenshot");
+            m_pHistory->saveImageAsync(m_screenShot, "copy_screenshot");*/
         close();
     });
 
@@ -132,8 +126,10 @@ void LSnapOverlayWindow::createButtonBar()
         {
             if (m_pHistory)
                 m_pHistory->saveImageAsync(selected, "sticker_screenshot");
-            //LSnapPicStickerWindow* pPicSticker = new LSnapPicStickerWindow(selected);  //TODO 存在bug 暂时不使用
+            //LSnapPicStickerWindow* pPicSticker = new LSnapPicStickerWindow(selected);  //TODO Bug
+
             StickerWindow* pPicSticker = new StickerWindow(selected);
+            //pPicSticker.reset(new StickerWindow(selected));
             pPicSticker->move(mapToGlobal(m_selection.topLeft()));
             pPicSticker->show();
         }
@@ -217,7 +213,7 @@ void LSnapOverlayWindow::mousePressEvent(QMouseEvent* pMouseEvent)
     QWidget::mousePressEvent(pMouseEvent);
 }
 
-bool LSnapOverlayWindow::handleExpandSelection(QMouseEvent* e) // distance may exits bug
+bool LSnapOverlayWindow::handleExpandSelection(QMouseEvent* e) //TODO distance may exits bug
 {
     if (m_snapStatus != 1)
         return false;
@@ -291,9 +287,15 @@ bool LSnapOverlayWindow::handleDraggingPress(QMouseEvent* e)
 
 void LSnapOverlayWindow::mouseMoveEvent(QMouseEvent* e)
 {
-    if (handleDrawingMove(e)) return;
-    if (handleResizeMove(e)) return;
-    if (handleDraggingMove(e)) return;
+    if (handleDrawingMove(e))
+        return;
+
+    if (handleResizeMove(e))
+        return;
+
+    if (handleDraggingMove(e))
+        return;
+
     handleHoverUpdate(e->pos());
     QWidget::mouseMoveEvent(e);
 }
@@ -317,7 +319,6 @@ bool LSnapOverlayWindow::handleResizeMove(QMouseEvent* e)
     QPoint delta = e->pos() - m_resizeStartPos;
     QRect newRect = m_resizeStartRect;
     QRect screenBounds = rect();
-
     switch (m_currentHandle)
     {
     case TopLeft:
@@ -374,8 +375,7 @@ bool LSnapOverlayWindow::handleResizeMove(QMouseEvent* e)
         else
             newRect.setBottom(newRect.top() + 10);
     }
-    newRect = newRect.intersected(screenBounds);  // 确保不超出屏幕边界
-
+    newRect = newRect.intersected(screenBounds);
     m_selection = newRect.normalized();
     update();
     e->accept();
@@ -439,7 +439,7 @@ bool LSnapOverlayWindow::handleResizeRelease(QMouseEvent* e)
         return false;
 
     m_currentHandle = None;
-    updateAndShowActionBar(); // 重新显示按钮
+    updateAndShowActionBar();
     e->accept();
     return true;
 }
@@ -462,13 +462,13 @@ bool LSnapOverlayWindow::handleDraggingRelease(QMouseEvent* e)
     return true;
 }
 
-// 复制的逻辑
+// copy pic
 void LSnapOverlayWindow::copySelectionToClipboard()
 {
     if (m_selection.isNull() || !m_selection.isValid())
         return;
-
-    if (m_screenShot.isNull())
+    
+    if (m_pScreenCapture->snapshot().isNull())
         return;
 
     QScreen* primaryScreen = QGuiApplication::primaryScreen();
@@ -484,7 +484,7 @@ void LSnapOverlayWindow::copySelectionToClipboard()
         physicalSelection.width() * devicePixelRatio,
         physicalSelection.height() * devicePixelRatio
     );
-    QRect validSelection = physicalSelection.intersected(m_screenShot.rect());
+    QRect validSelection = physicalSelection.intersected(m_pScreenCapture->snapshot().rect());
     if (validSelection.isEmpty())
         return;
 
@@ -497,39 +497,31 @@ void LSnapOverlayWindow::copySelectionToClipboard()
     }
 }
 
+// for paste and copy
 QPixmap LSnapOverlayWindow::getSelectionPixmap()
 {
-    QScreen* screen = QGuiApplication::primaryScreen();
-    if (!screen)
+    if (!m_pScreenCapture || m_pScreenCapture->snapshot().isNull())
         return QPixmap();
 
-    const qreal dpr = screen->devicePixelRatio();
-    const QRect virtualGeom = screen->virtualGeometry();
-
-    QImage composed = m_screenShot.toImage();
+    QImage composed = m_pScreenCapture->snapshot().toImage();
     QPainter p(&composed);
     p.setRenderHint(QPainter::Antialiasing, true);
     p.setRenderHint(QPainter::SmoothPixmapTransform, true);
-    const QPointF overlayGlobalTopLeft = mapToGlobal(QPoint(0,0));
-    const QPointF offsetLogical = overlayGlobalTopLeft - m_captureVirtualGeom.topLeft();
-    m_drawing.paintCommittedMapped(p, offsetLogical, m_captureDpr);
+    const QPoint overlayGlobalTopLeft = mapToGlobal(QPoint(0, 0));
+    const QPoint offsetLogical = overlayGlobalTopLeft - m_pScreenCapture->virtualGeometry().topLeft();
+    m_drawing.paintCommittedMapped(p, offsetLogical, m_pScreenCapture->dpr());
+    const QRect virtSel = m_pScreenCapture->mapOverlayToVirtual(m_selection, overlayGlobalTopLeft);
+    return m_pScreenCapture->cropFromImageVirtual(composed, virtSel);
+}
 
-    QRect logicalSel = m_selection;
-    logicalSel.translate(mapToGlobal(QPoint(0,0)) - m_captureVirtualGeom.topLeft());
-    QRect physicalSel(
-        qRound(logicalSel.x() * m_captureDpr),
-        qRound(logicalSel.y() * m_captureDpr),
-        qRound(logicalSel.width() * m_captureDpr),
-        qRound(logicalSel.height() * m_captureDpr)
-    );
-
-    // 裁剪输出
-    QRect valid = physicalSel.intersected(QRect(QPoint(0,0), composed.size()));
-    if (valid.isEmpty()) return QPixmap();
-
-    QPixmap out = QPixmap::fromImage(composed.copy(valid));
-    out.setDevicePixelRatio(m_captureDpr);
-    return out;
+QPixmap LSnapOverlayWindow::getSelectionPixmap1(bool live)
+{
+    if (m_selection.isNull() || !m_selection.isValid()) return QPixmap();
+    const QPoint overlayGlobalTopLeft = mapToGlobal(QPoint(0, 0));
+    const QRect virtSel = m_pScreenCapture->mapOverlayToVirtual(m_selection, overlayGlobalTopLeft);
+    return (live || m_recordHollow)
+        ? m_pScreenCapture->grabRegionLive(virtSel)
+        : m_pScreenCapture->grabRegion(virtSel);
 }
 
 QRect LSnapOverlayWindow::getHandleRect(ResizeHandle handle) const
@@ -618,7 +610,8 @@ void LSnapOverlayWindow::updateAndShowActionBar()
 
 void LSnapOverlayWindow::hideActionBar()
 {
-    if (m_pActionBar) m_pActionBar->hide();
+    if (m_pActionBar)
+        m_pActionBar->hide();
     m_drawing.setMode(LSnapDrawingLayer::ShapeType::None);
 }
 
@@ -634,34 +627,3 @@ void LSnapOverlayWindow::onLineWidthChanged(int w)
     update();
 }
 
-QPixmap LSnapOverlayWindow::getSelectionPixmap1(bool live)
-{
-    if (m_selection.isNull() || !m_selection.isValid())
-        return QPixmap();
-
-    const QPoint overlayGlobalTopLeft = mapToGlobal(QPoint(0,0));
-    QRect logicalSel = m_selection;
-    logicalSel.translate(overlayGlobalTopLeft - m_captureVirtualGeom.topLeft());
-
-    const QRect physSel = logicalSel;
-
-    if (live || m_recordHollow)
-    {
-        if (QScreen* scr = QGuiApplication::primaryScreen())
-        {
-            QPixmap frame = scr->grabWindow(0, physSel.x(), physSel.y(), physSel.width(), physSel.height());
-            frame.setDevicePixelRatio(m_captureDpr);
-            return frame;
-        }
-        return QPixmap();
-    }
-
-    QImage composed = m_screenShot.toImage();
-    const QRect bounds(QPoint(0,0), composed.size());
-    const QRect valid = physSel.intersected(bounds);
-    if (valid.isEmpty()) return QPixmap();
-
-    QPixmap out = QPixmap::fromImage(composed.copy(valid));
-    out.setDevicePixelRatio(m_captureDpr);
-    return out;
-}

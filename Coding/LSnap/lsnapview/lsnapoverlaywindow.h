@@ -3,6 +3,7 @@
 
 #include "lsnapdrawinglayer.h"
 #include "lsnaphistory.h"
+#include "lsnapscreencapture.h"
 #include <QWidget>
 #include <QRect>
 #include <QPoint>
@@ -11,7 +12,7 @@
 
 class LSnapDrawingLayer;
 class GifRecorder;
-
+class StickerWindow;
 class LSnapOverlayWindow : public QWidget
 {
     Q_OBJECT
@@ -55,22 +56,12 @@ private:
 
     enum ResizeHandle
     {
-        None = 0,
-        TopLeft = 1,
-        Top = 2,
-        TopRight = 3,
-        Right = 4,
-        BottomRight = 5,
-        Bottom = 6,
-        BottomLeft = 7,
-        Left = 8,
-        Move = 9
+        None = 0, TopLeft = 1, Top = 2, TopRight = 3, Right = 4,
+        BottomRight = 5, Bottom = 6, BottomLeft = 7, Left = 8, Move = 9
     };
 
-    // init in captureScreen()
-    qreal m_captureDpr = 1.0; // 1.5 my device
-    QRect m_captureVirtualGeom; // (0,0 1707x1067)
-    QPixmap m_screenShot;
+    // captureScreen
+    LSnapScreenCapture* m_pScreenCapture = nullptr;
 
     // button bar
     QWidget* m_pActionBar = nullptr;
@@ -93,23 +84,23 @@ private:
     QPoint m_resizeStartPos;
     QRect m_resizeStartRect;
 
-    LSnapDrawingLayer m_drawing; //绘图相关
+    //PaintEvent
+    LSnapDrawingLayer m_drawing;
+    void drawResizeHandles(QPainter& painter);
 
     //History
     LSnapHistory* m_pHistory = nullptr;
 
     //GIF
     GifRecorder* m_pGifRecorder = nullptr;
-    void captureScreen();
+    
     void copySelectionToClipboard();
     QPixmap getSelectionPixmap();
     QPixmap getSelectionPixmap1(bool live = false);
 
-    // 边界控制相关方法
     ResizeHandle getHandleAt(const QPoint& pos) const;
     QRect getHandleRect(ResizeHandle handle) const;
     void updateCursorForHandle(ResizeHandle handle);
-    void drawResizeHandles(QPainter& painter);
     void updateAndShowActionBar();
     void hideActionBar();
  

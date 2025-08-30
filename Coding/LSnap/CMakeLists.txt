@@ -36,6 +36,7 @@ set(HEADER_FILES
     "lsnapview/lsnapstickerwindow/lsnapstickerwindowbase.h"
     "lsnapview/lsnapstickerwindow/lsnappicstickerwindow.h"
     "lsnapview/lsnapsystemtray.h"
+    "lsnapscreencapture.h"
 )
 
 set(CPP_FILES 
@@ -50,6 +51,7 @@ set(CPP_FILES
     "lsnapview/lsnapstickerwindow/lsnapstickerwindowbase.cpp"
     "lsnapview/lsnapstickerwindow/lsnappicstickerwindow.cpp"
     "lsnapview/lsnapsystemtray.cpp"
+    "lsnapscreencapture.cpp"
 )
 
 qt5_wrap_ui(UI_HEADERS ${UI_FILES})
